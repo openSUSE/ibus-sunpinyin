@@ -1,7 +1,5 @@
 #!/bin/sh
 
-prefix=@INSTALL_PREFIX@
-exec_prefix=${prefix}
-export IBUS_PREFIX=${prefix}
-export IBUS_LOCALEDIR=${prefix}/share/locale
-exec python @DATA_DIR@/setup/main.py $@
+export IBUS_PREFIX="@INSTALL_PREFIX@"
+export IBUS_LOCALEDIR="@LOCALEDIR@"
+exec "@PYTHON@" "@DATA_DIR@/setup/main.py" "$@"

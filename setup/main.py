@@ -57,7 +57,7 @@ import locale
 GETTEXT_PACKAGE="ibus-sunpinyin"
 _ = lambda msg: gettext.gettext(msg)
 
-XML_FILE = path.join(path.dirname(__file__), "setup.xml")
+XML_FILE = path.join(path.dirname(__file__), "setup.ui")
 SEPARATOR = "/"
 
 class Logger:

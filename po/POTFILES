@@ -1,0 +1,4 @@
+src/main.cpp
+src/sunpinyin_property.cpp
+setup/main.py
+setup/setup.ui
