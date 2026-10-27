@@ -158,6 +158,7 @@ SunPinyinEngine::process_key_event (guint key_val,
 void
 SunPinyinEngine::focus_in ()
 {
+    update_candidate_orientation();
     ibus_engine_register_properties(m_engine, m_prop_list);
     m_pv->updateWindows(CIMIView::PREEDIT_MASK | CIMIView::CANDIDATE_MASK);
 }
@@ -250,31 +251,34 @@ SunPinyinEngine::cursor_down ()
 bool
 SunPinyinEngine::onConfigChanged(const COptionEvent& event)
 {
-    if (event.name == CONFIG_GENERAL_MEMORY_POWER) {
+    if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_MEMORY_POWER) == 0) {
         update_history_power();
-    } else if (event.name == CONFIG_GENERAL_PAGE_SIZE) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_PAGE_SIZE) == 0) {
         update_cand_window_size();
-    } else if (event.name == CONFIG_GENERAL_CHARSET_LEVEL) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_ORIENTATION) == 0) {
+        update_candidate_orientation();
+        m_pv->updateWindows(CIMIView::CANDIDATE_MASK);
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_CHARSET_LEVEL) == 0) {
         update_charset_level();
-    } else if (event.name == CONFIG_GENERAL_MAX_BEST) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_MAX_BEST) == 0) {
         update_max_best();
-    } else if (event.name == CONFIG_GENERAL_MAX_TAIL_CANDIDATE) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_MAX_TAIL_CANDIDATE) == 0) {
         update_max_tail_candidate();
-    } else if (event.name == CONFIG_KEYBOARD_MODE_SWITCH) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_KEYBOARD_MODE_SWITCH) == 0) {
         update_mode_key();
-    } else if (event.name == CONFIG_KEYBOARD_PUNCT_SWITCH) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_KEYBOARD_PUNCT_SWITCH) == 0) {
         update_punct_key();
-    } else if (event.name == CONFIG_KEYBOARD_PAGE_COMMA) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_KEYBOARD_PAGE_COMMA) == 0) {
         update_page_key_comma();
-    } else if (event.name == CONFIG_KEYBOARD_PAGE_MINUS) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_KEYBOARD_PAGE_MINUS) == 0) {
         update_page_key_minus();
-    } else if (event.name == CONFIG_KEYBOARD_PAGE_BRACKET) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_KEYBOARD_PAGE_BRACKET) == 0) {
         update_page_key_bracket();
-    } else if (event.name == CONFIG_QUANPIN_FUZZYSEGS_ENABLED) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_QUANPIN_FUZZYSEGS_ENABLED) == 0) {
         update_fuzzy_segs();
-    } else if (event.name == CONFIG_KEYBOARD_CANCEL_BACKSPACE) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_KEYBOARD_CANCEL_BACKSPACE) == 0) {
         update_cancel_with_backspace();
-    } else if (event.name == CONFIG_KEYBOARD_SMARK_PUNCT) {
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_KEYBOARD_SMARK_PUNCT) == 0) {
         update_smart_punc();
     }
 
@@ -286,6 +290,7 @@ SunPinyinEngine::update_config()
 {
     update_history_power();
     update_cand_window_size();
+    update_candidate_orientation();
     update_max_best();
     update_max_tail_candidate();
     update_charset_level();
@@ -317,6 +322,17 @@ SunPinyinEngine::update_candidates(const ICandidateList& cl)
         update_lookup_table();
     else
         ibus_engine_hide_lookup_table (m_engine);
+}
+
+void
+SunPinyinEngine::update_candidate_orientation()
+{
+    int orientation = m_config.get(CONFIG_GENERAL_ORIENTATION,
+                                   static_cast<int>(IBUS_ORIENTATION_SYSTEM));
+    if (orientation < IBUS_ORIENTATION_HORIZONTAL ||
+        orientation > IBUS_ORIENTATION_SYSTEM)
+        orientation = IBUS_ORIENTATION_SYSTEM;
+    ibus_lookup_table_set_orientation(m_lookup_table, orientation);
 }
 
 void

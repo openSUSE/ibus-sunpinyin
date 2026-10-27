@@ -37,20 +37,12 @@
 import sys
 import os
 from os import path
-try:
-    import gtk
-    import glib
-except ImportError:
-    from gi import require_version as gi_require_version
-    gi_require_version('Gtk', '3.0')
-    from gi.repository import Gtk as gtk
-    from gi.repository import GLib as glib
-try:
-    import ibus
-except ImportError:
-    from gi import require_version as gi_require_version
-    gi_require_version('IBus', '1.0')
-    from gi.repository import IBus as ibus
+import gi
+gi.require_version('Gtk', '3.0')
+gi.require_version('IBus', '1.0')
+from gi.repository import Gtk as gtk
+from gi.repository import GLib as glib
+from gi.repository import IBus as ibus
 import gettext
 import locale
 
@@ -298,6 +290,7 @@ class MultiCheckDialog (object):
     def __init_ui(self, parent_window):
         dlg_name = self.get_setup_name()
         self.__xml = gtk.Builder()
+        self.__xml.set_translation_domain(GETTEXT_PACKAGE)
         self.__xml.add_objects_from_file(XML_FILE, [dlg_name])
         self.__dlg = self.__xml.get_object(dlg_name)
         assert self.__dlg is not None, "dialog %s not found in %s" % (dlg_name, XML_FILE)
@@ -490,10 +483,10 @@ class MainWindow():
 
     def __init_ui(self, name):
         self.__init_gettext()
-        xml_file = path.join(path.dirname(__file__), XML_FILE)
         self.__xml = gtk.Builder()
-        self.__xml.add_objects_from_file(xml_file, self.SPECIAL_OBJECTS)
-        self.__xml.add_objects_from_file(xml_file, [name])
+        self.__xml.set_translation_domain(GETTEXT_PACKAGE)
+        self.__xml.add_objects_from_file(XML_FILE, self.SPECIAL_OBJECTS)
+        self.__xml.add_objects_from_file(XML_FILE, [name])
         self.__xml.connect_signals(self)
         self.__init_options()
         self.window = self.__xml.get_object(name)
@@ -503,7 +496,10 @@ class MainWindow():
         locale.setlocale(locale.LC_ALL, "")
         localedir = os.getenv("IBUS_LOCALEDIR")
         gettext.bindtextdomain(GETTEXT_PACKAGE, localedir)
-        gettext.bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8")
+        gettext.textdomain(GETTEXT_PACKAGE)
+        # GtkBuilder uses the C gettext API rather than Python's gettext.
+        locale.bindtextdomain(GETTEXT_PACKAGE, localedir)
+        locale.textdomain(GETTEXT_PACKAGE)
 
     def __init_options(self):
         self.__fuzzy_setup = FuzzySetupDialog()
@@ -513,6 +509,7 @@ class MainWindow():
         self.__options = [
             TrivalOption("General/MemoryPower", 3, self.__xml),
             TrivalOption("General/PageSize", 10, self.__xml),
+            TrivalOption("General/Orientation", 2, self.__xml),
             TrivalOption("General/MaxBest", 1, self.__xml),
             TrivalOption("General/MaxTailCandidate", 0, self.__xml),
 

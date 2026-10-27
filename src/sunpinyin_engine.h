@@ -89,6 +89,7 @@ public:
 
 private:
     void update_config();
+    void update_candidate_orientation();
     void update_history_power();
     void update_cand_window_size();
     void update_mode_key();

@@ -40,6 +40,7 @@
 #define CONFIG_GENERAL_MEMORY_POWER         "General/MemoryPower"
 #define CONFIG_GENERAL_CHARSET_LEVEL        "General/Charset"
 #define CONFIG_GENERAL_MAX_BEST             "General/MaxBest"
+#define CONFIG_GENERAL_ORIENTATION          "General/Orientation"
 #define CONFIG_GENERAL_MAX_TAIL_CANDIDATE   "General/MaxTailCandidate"
 #define CONFIG_GENERAL_INITIAL_MODE         "General/InitialStatus/Mode"
 #define CONFIG_GENERAL_INITIAL_PUNCT        "General/InitialStatus/Punct"

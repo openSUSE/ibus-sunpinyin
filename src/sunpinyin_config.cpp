@@ -152,9 +152,11 @@ SunPinyinConfig::get(const char* key, bool val)
     ConfigItem item(key);
     GVariant* value = ibus_config_get_value(m_config, item.section.c_str(), item.name.c_str());
     bool result = val;
-    if (g_variant_classify(value) == G_VARIANT_CLASS_BOOLEAN) {
+    if (value && g_variant_classify(value) == G_VARIANT_CLASS_BOOLEAN) {
         result = (g_variant_get_boolean(value) == TRUE);
     }
+    if (value)
+        g_variant_unref(value);
     return result;
 }
 
@@ -176,9 +178,11 @@ SunPinyinConfig::get(const char* key, const std::string& val)
     ConfigItem item(key);
     GVariant* value = ibus_config_get_value(m_config, item.section.c_str(), item.name.c_str());
     string result = val;
-    if (g_variant_classify(value) == G_VARIANT_CLASS_STRING) {
+    if (value && g_variant_classify(value) == G_VARIANT_CLASS_STRING) {
       result = string(g_variant_get_string(value, NULL));
     }
+    if (value)
+        g_variant_unref(value);
     return result;
 }
 
@@ -200,9 +204,11 @@ SunPinyinConfig::get(const char* key, int val)
     ConfigItem item(key);
     GVariant* value = ibus_config_get_value(m_config, item.section.c_str(), item.name.c_str());
     int result = val;
-    if (g_variant_classify(value) == G_VARIANT_CLASS_INT32) {
+    if (value && g_variant_classify(value) == G_VARIANT_CLASS_INT32) {
         result =  g_variant_get_int32(value);
     }
+    if (value)
+        g_variant_unref(value);
     return result;
 }
 
@@ -224,9 +230,11 @@ SunPinyinConfig::get(const char* key, const std::vector<std::string>& val)
     ConfigItem item(key);
     GVariant* value = ibus_config_get_value(m_config, item.section.c_str(), item.name.c_str());
     vector<string> result(val);
-    if (g_variant_classify(value) == G_VARIANT_CLASS_ARRAY) {
+    if (value && g_variant_classify(value) == G_VARIANT_CLASS_ARRAY) {
         result =  get_strings_from_gvariant(value);
     }
+    if (value)
+        g_variant_unref(value);
     return result;
 }
 
@@ -278,7 +286,8 @@ SunPinyinConfig::on_config_value_changed(IBusConfig *config,
                                          SunPinyinConfig* thiz)
 {
     static const char* prefix = "engine/SunPinyin/";
-    if (!strstr(section, prefix))
+    // ibus-dconf normalizes section names to lowercase.
+    if (!section || g_ascii_strncasecmp(section, prefix, strlen(prefix)) != 0)
         return;
     const char *sub_section = section + strlen(prefix);
     COptionEvent event = g_value_to_event(sub_section, name, value);
@@ -439,7 +448,8 @@ SunPinyinConfig::on_config_value_changed(IBusConfig *config,
                                          SunPinyinConfig* thiz)
 {
     static const char* prefix = "engine/SunPinyin/";
-    if (!strstr(section, prefix))
+    // ibus-dconf normalizes section names to lowercase.
+    if (!section || g_ascii_strncasecmp(section, prefix, strlen(prefix)) != 0)
         return;
     const char *sub_section = section + strlen(prefix);
     COptionEvent event = g_value_to_event(sub_section, name, value);

@@ -61,7 +61,7 @@
             </child>
             <child>
               <object class="GtkButton" id="correction_ok">
-                <property name="label">gtk-ok</property>
+                <property name="label" translatable="yes">OK</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -76,7 +76,7 @@
             </child>
             <child>
               <object class="GtkButton" id="correction_cancel">
-                <property name="label">gtk-cancel</property>
+                <property name="label" translatable="yes">Cancel</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -247,7 +247,7 @@
             </child>
             <child>
               <object class="GtkButton" id="fuzzy_ok">
-                <property name="label">gtk-ok</property>
+                <property name="label" translatable="yes">OK</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -262,7 +262,7 @@
             </child>
             <child>
               <object class="GtkButton" id="fuzzy_cancel">
-                <property name="label">gtk-cancel</property>
+                <property name="label" translatable="yes">Cancel</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -572,7 +572,7 @@
             </child>
             <child>
               <object class="GtkButton" id="punctmapping_ok">
-                <property name="label">gtk-ok</property>
+                <property name="label" translatable="yes">OK</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -587,7 +587,7 @@
             </child>
             <child>
               <object class="GtkButton" id="punctmapping_cancel">
-                <property name="label">gtk-cancel</property>
+                <property name="label" translatable="yes">Cancel</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -2580,9 +2580,37 @@
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                             <property name="border-width">10</property>
-                            <property name="n-rows">4</property>
+                            <property name="n-rows">5</property>
                             <property name="n-columns">2</property>
                             <property name="homogeneous">True</property>
+                            <child>
+                              <object class="GtkLabel" id="candidate_orientation">
+                                <property name="visible">True</property>
+                                <property name="label" translatable="yes">Candidate Orientation</property>
+                                <property name="xalign">0</property>
+                              </object>
+                              <packing>
+                                <property name="top-attach">4</property>
+                                <property name="bottom-attach">5</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkComboBoxText" id="General/Orientation">
+                                <property name="visible">True</property>
+                                <items>
+                                  <item translatable="yes">Horizontal</item>
+                                  <item translatable="yes">Vertical</item>
+                                  <item translatable="yes">System Default</item>
+                                </items>
+                              </object>
+                              <packing>
+                                <property name="left-attach">1</property>
+                                <property name="right-attach">2</property>
+                                <property name="top-attach">4</property>
+                                <property name="bottom-attach">5</property>
+                                <property name="y-options"/>
+                              </packing>
+                            </child>
                             <child>
                               <object class="GtkLabel" id="candidate_num">
                                 <property name="visible">True</property>
@@ -2820,7 +2848,7 @@
             <property name="layout-style">end</property>
             <child>
               <object class="GtkButton" id="main_ok">
-                <property name="label">gtk-ok</property>
+                <property name="label" translatable="yes">OK</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -2835,7 +2863,7 @@
             </child>
             <child>
               <object class="GtkButton" id="main_cancel">
-                <property name="label">gtk-cancel</property>
+                <property name="label" translatable="yes">Cancel</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -2850,7 +2878,7 @@
             </child>
             <child>
               <object class="GtkButton" id="main_apply">
-                <property name="label">gtk-apply</property>
+                <property name="label" translatable="yes">Apply</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>

@@ -213,3 +213,24 @@ msgstr "切换到半角输入模式"
 #: setup/setup.glade:955
 msgid "copyright (c) 2009"
 msgstr "版权所有 (c) 2009"
+
+msgid "OK"
+msgstr "确定"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Apply"
+msgstr "应用"
+
+msgid "Candidate Orientation"
+msgstr "候选词显示方向"
+
+msgid "Horizontal"
+msgstr "横排"
+
+msgid "Vertical"
+msgstr "竖排"
+
+msgid "System Default"
+msgstr "跟随系统"
