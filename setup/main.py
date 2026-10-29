@@ -145,18 +145,20 @@ class CheckBoxOption(TrivalOption):
         super(CheckBoxOption, self).__init__(name, default, owner)
 
 class ComboBoxOption(TrivalOption):
-    def __init__(self, name, default, options, owner):
+    def __init__(self, name, default, options, owner, labels=None):
         try:
             default = int(default)
         except ValueError:
             default = options.index(default)
         super(ComboBoxOption, self).__init__(name, default, owner)
         self.options = options
+        self.labels = options if labels is None else labels
+        assert len(self.labels) == len(self.options)
 
     def init(self):
         model = gtk.ListStore(str)
-        for v in self.options:
-            model.append([str(v)])
+        for label in self.labels:
+            model.append([str(label)])
         self.widget.set_model(model)
 
     def __get_value(self):
@@ -535,7 +537,13 @@ class MainWindow():
                                                               'ZiRanMa',
                                                               'Pinyin++',
                                                               'ZiGuang',
-                                                              'XiaoHe'], self.__xml),
+                                                              'XiaoHe'], self.__xml,
+                           labels=[_('Microsoft Shuangpin'),
+                                   _('Intelligent ABC'),
+                                   _('Ziranma'),
+                                   _('Pinyin++'),
+                                   _('Ziguang'),
+                                   _('Xiaohe')]),
             CheckBoxOption("QuanPin/Fuzzy/Enabled", False, self.__xml),
             CheckBoxOption("QuanPin/AutoCorrection/Enabled", False, self.__xml),
             CheckBoxOption("QuanPin/FuzzySegs/Enabled", False, self.__xml),

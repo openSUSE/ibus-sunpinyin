@@ -234,3 +234,27 @@ msgstr "竖排"
 
 msgid "System Default"
 msgstr "跟随系统"
+
+msgid "Microsoft Shuangpin"
+msgstr "微软双拼"
+
+msgid "Intelligent ABC"
+msgstr "智能 ABC"
+
+msgid "Ziranma"
+msgstr "自然码"
+
+msgid "Pinyin++"
+msgstr "拼音加加"
+
+msgid "Ziguang"
+msgstr "紫光"
+
+msgid "Xiaohe"
+msgstr "小鹤"
+
+msgid "Number of Best Sentence"
+msgstr "最佳整句数量"
+
+msgid "Number of Best Tail Candidate"
+msgstr "最佳尾部候选词数量"
