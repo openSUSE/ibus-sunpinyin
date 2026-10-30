@@ -215,13 +215,13 @@ msgid "copyright (c) 2009"
 msgstr "版权所有 (c) 2009"
 
 msgid "OK"
-msgstr "确定"
+msgstr "确定(O)"
 
 msgid "Cancel"
-msgstr "取消"
+msgstr "取消(C)"
 
 msgid "Apply"
-msgstr "应用"
+msgstr "应用(A)"
 
 msgid "Candidate Orientation"
 msgstr "候选词显示方向"
@@ -273,3 +273,27 @@ msgstr "切换到繁体中文"
 
 msgid "Switch to Simplified Chinese"
 msgstr "切换到简体中文"
+
+msgid "Language:"
+msgstr "语言："
+
+msgid "Full/Half-width:"
+msgstr "全角/半角："
+
+msgid "Punctuation:"
+msgstr "标点符号："
+
+msgid "Chinese:"
+msgstr "中文："
+
+msgid "Full-width"
+msgstr "全角"
+
+msgid "Half-width"
+msgstr "半角"
+
+msgid "Simplified"
+msgstr "简体"
+
+msgid "Traditional"
+msgstr "繁体"

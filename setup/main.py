@@ -488,7 +488,8 @@ class MainWindow():
             if widget is not None:
                 enabled = (value is not None and value.get_type_string() == "b"
                            and value.unpack())
-                widget.set_active(enabled)
+                script = "Traditional" if enabled else "Simplified"
+                self.__xml.get_object("General/" + script).set_active(True)
 
     def run(self):
         self.__init_ui("main_window")
@@ -524,13 +525,13 @@ class MainWindow():
             TrivalOption("General/MemoryPower", 3, self.__xml),
             TrivalOption("General/PageSize", 10, self.__xml),
             TrivalOption("General/Orientation", 2, self.__xml),
-            CheckBoxOption("General/Traditional", False, self.__xml),
             TrivalOption("General/MaxBest", 1, self.__xml),
             TrivalOption("General/MaxTailCandidate", 0, self.__xml),
 
             RadioOption("General/InitialStatus/Mode", 'Chinese', ['Chinese', 'English'], self.__xml),
             RadioOption("General/InitialStatus/Punct", 'Full', ['Full', 'Half'], self.__xml),
             RadioOption("General/InitialStatus/Letter", 'Half', ['Full', 'Half'], self.__xml),
+            TrivalOption("General/Traditional", False, self.__xml),
             RadioOption("General/Charset", 'GBK', ['GB2312', 'GBK', 'GB18030'], self.__xml),
             CheckBoxOption("General/PunctMapping/Enabled", False, self.__xml),
 
