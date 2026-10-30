@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009 Kov Chai <tchaikov@gmail.com>
+ * Copyright (c) 2026 Hillwood Yang <hillwood@opensuse.org>
  *
  * The contents of this file are subject to the terms of either the GNU Lesser
  * General Public License Version 2.1 only ("LGPL") or the Common Development and
@@ -40,6 +41,7 @@
 #include "ibus_common.h"
 
 class ICandidateList;
+class SunPinyinConversion;
 
 /**
  * a helper class to maintain the IBusLookupTable
@@ -54,7 +56,7 @@ public:
      * @param cl candidate list
      * @return the number of candidates updated
      */
-    int update_candidates(const ICandidateList& cl);
+    int update_candidates(const ICandidateList& cl, const SunPinyinConversion& conversion);
     bool cursor_up();
     bool cursor_down();
     size_t get_cursor_pos() const;

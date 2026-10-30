@@ -476,7 +476,19 @@ class MainWindow():
     def __init__ (self):
         self.__bus = ibus.Bus()
         self.__config = self.__bus.get_config()
+        self.__config.connect("value-changed", self.__on_config_changed)
 
+
+    def __on_config_changed(self, config, section, name, value):
+        # Keep an already-open preferences window in sync with the IBus menu.
+        if (section.lower() == "engine/sunpinyin/general" and
+                name.lower() == "traditional" and
+                hasattr(self, "_MainWindow__xml")):
+            widget = self.__xml.get_object("General/Traditional")
+            if widget is not None:
+                enabled = (value is not None and value.get_type_string() == "b"
+                           and value.unpack())
+                widget.set_active(enabled)
 
     def run(self):
         self.__init_ui("main_window")
@@ -512,6 +524,7 @@ class MainWindow():
             TrivalOption("General/MemoryPower", 3, self.__xml),
             TrivalOption("General/PageSize", 10, self.__xml),
             TrivalOption("General/Orientation", 2, self.__xml),
+            CheckBoxOption("General/Traditional", False, self.__xml),
             TrivalOption("General/MaxBest", 1, self.__xml),
             TrivalOption("General/MaxTailCandidate", 0, self.__xml),
 

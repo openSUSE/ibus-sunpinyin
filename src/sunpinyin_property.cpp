@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009 Kov Chai <tchaikov@gmail.com>
+ * Copyright (c) 2026 Hillwood Yang <hillwood@opensuse.org>
  *
  * The contents of this file are subject to the terms of either the GNU Lesser
  * General Public License Version 2.1 only ("LGPL") or the Common Development and
@@ -44,6 +45,7 @@
 static const char *PROP_STATUS = "status";
 static const char *PROP_LETTER = "full_letter";
 static const char *PROP_PUNCT  = "full_punct";
+static const char *PROP_SCRIPT = "traditional";
 
 PropertyInfo::PropertyInfo()
     : label(NULL), tooltip(NULL)
@@ -95,6 +97,20 @@ SunPinyinProperty::create_punct_prop(ibus::Engine engine, bool state)
     prop.init(state);
     return prop;
 
+}
+
+SunPinyinProperty
+SunPinyinProperty::create_script_prop(ibus::Engine engine, bool state)
+{
+    SunPinyinProperty prop(engine, PROP_SCRIPT);
+    prop.m_info[0].label = ibus_text_new_from_static_string(_("Simplified Chinese"));
+    prop.m_info[0].icon = IBUS_SUNPINYIN_ICON_DIR"/simp-chinese.svg";
+    prop.m_info[0].tooltip = ibus_text_new_from_static_string(_("Switch to Traditional Chinese"));
+    prop.m_info[1].label = ibus_text_new_from_static_string(_("Traditional Chinese"));
+    prop.m_info[1].icon = IBUS_SUNPINYIN_ICON_DIR"/trad-chinese.svg";
+    prop.m_info[1].tooltip = ibus_text_new_from_static_string(_("Switch to Simplified Chinese"));
+    prop.init(state);
+    return prop;
 }
 
 SunPinyinProperty::SunPinyinProperty(ibus::Engine engine, const std::string& name)

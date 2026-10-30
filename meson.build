@@ -2,10 +2,11 @@ project('ibus-sunpinyin', 'cpp',
   version: '2.0.3',
   meson_version: '>=0.59.0',
   license: ['LGPL-2.1-only', 'CDDL-1.0'],
-  default_options: ['cpp_std=c++11', 'warning_level=1'])
+  default_options: ['cpp_std=c++17', 'warning_level=1'])
 
 ibus_dep = dependency('ibus-1.0', version: '>=1.2', method: 'pkg-config')
 sunpinyin_dep = dependency('sunpinyin-2.0', version: '>=2.0', method: 'pkg-config')
+opencc_dep = dependency('opencc', version: '>=1.0', method: 'pkg-config')
 intl_dep = dependency('intl')
 python = import('python').find_installation('python3')
 

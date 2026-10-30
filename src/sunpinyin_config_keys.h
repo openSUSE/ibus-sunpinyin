@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009 Kov Chai <tchaikov@gmail.com>
+ * Copyright (c) 2026 Hillwood Yang <hillwood@opensuse.org>
  *
  * The contents of this file are subject to the terms of either the GNU Lesser
  * General Public License Version 2.1 only ("LGPL") or the Common Development and
@@ -40,6 +41,7 @@
 #define CONFIG_GENERAL_MEMORY_POWER         "General/MemoryPower"
 #define CONFIG_GENERAL_CHARSET_LEVEL        "General/Charset"
 #define CONFIG_GENERAL_MAX_BEST             "General/MaxBest"
+#define CONFIG_GENERAL_TRADITIONAL          "General/Traditional"
 #define CONFIG_GENERAL_ORIENTATION          "General/Orientation"
 #define CONFIG_GENERAL_MAX_TAIL_CANDIDATE   "General/MaxTailCandidate"
 #define CONFIG_GENERAL_INITIAL_MODE         "General/InitialStatus/Mode"

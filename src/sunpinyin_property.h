@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009 Kov Chai <tchaikov@gmail.com>
+ * Copyright (c) 2026 Hillwood Yang <hillwood@opensuse.org>
  *
  * The contents of this file are subject to the terms of either the GNU Lesser
  * General Public License Version 2.1 only ("LGPL") or the Common Development and
@@ -62,6 +63,8 @@ public:
     static SunPinyinProperty create_letter_prop(ibus::Engine engine,
                                                 bool state = false);
     static SunPinyinProperty create_punct_prop(ibus::Engine engine,
+                                                bool state = false);
+    static SunPinyinProperty create_script_prop(ibus::Engine engine,
                                                 bool state = false);
     virtual ~SunPinyinProperty();
     bool toggle(const std::string& name);

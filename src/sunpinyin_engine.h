@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009 Kov Chai <tchaikov@gmail.com>
+ * Copyright (c) 2026 Hillwood Yang <hillwood@opensuse.org>
  *
  * The contents of this file are subject to the terms of either the GNU Lesser
  * General Public License Version 2.1 only ("LGPL") or the Common Development and
@@ -40,6 +41,7 @@
 #include <ibus.h>
 #include <ime-core/imi_option_event.h>
 #include "sunpinyin_config.h"
+#include "sunpinyin_conversion.h"
 #include "sunpinyin_property.h"
 #include "sunpinyin_lookup_table.h"
 
@@ -90,6 +92,7 @@ public:
 private:
     void update_config();
     void update_candidate_orientation();
+    void update_output_script();
     void update_history_power();
     void update_cand_window_size();
     void update_mode_key();
@@ -122,9 +125,11 @@ private:
     SunPinyinProperty m_status_prop;
     SunPinyinProperty m_letter_prop;
     SunPinyinProperty m_punct_prop;
+    SunPinyinProperty m_script_prop;
     SetupLauncher     m_setup_prop;
 
     SunPinyinLookupTable m_lookup_table;
+    SunPinyinConversion m_conversion;
 
     CIBusWinHandler *m_wh;
     CIMIView        *m_pv;

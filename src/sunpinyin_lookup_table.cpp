@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009 Kov Chai <tchaikov@gmail.com>
+ * Copyright (c) 2026 Hillwood Yang <hillwood@opensuse.org>
  *
  * The contents of this file are subject to the terms of either the GNU Lesser
  * General Public License Version 2.1 only ("LGPL") or the Common Development and
@@ -36,6 +37,7 @@
 #include <sunpinyin.h>
 #include "ibus_portable.h"
 #include "sunpinyin_lookup_table.h"
+#include "sunpinyin_conversion.h"
 
 SunPinyinLookupTable::SunPinyinLookupTable() 
     : Pointer<IBusLookupTable>(ibus_lookup_table_new (9, 0, TRUE, TRUE))
@@ -46,7 +48,7 @@ SunPinyinLookupTable::~SunPinyinLookupTable()
 }
 
 int
-SunPinyinLookupTable::update_candidates(const ICandidateList& cl)
+SunPinyinLookupTable::update_candidates(const ICandidateList& cl, const SunPinyinConversion& conversion)
 {
     const int size = cl.size();
     if (size <= 0)
@@ -66,7 +68,8 @@ SunPinyinLookupTable::update_candidates(const ICandidateList& cl)
     for (int i = 0; i < size; ++i) {
     const TWCHAR* cand = cl.candiString(i);
     if (cand && cl.candiSize(i)) {
-        ibus::Text text(ibus_text_new_from_ucs4(cand));
+        const std::string converted = conversion.convert(reinterpret_cast<const gunichar*>(cand));
+        ibus::Text text(ibus_text_new_from_string(converted.c_str()));
         decorate_candidate(text, cl.candiType(i));
         ibus_lookup_table_append_candidate(*this, text);
         ++cur_total;

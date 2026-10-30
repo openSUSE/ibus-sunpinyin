@@ -6,5 +6,7 @@ install_data(
   'halfwidth.svg',
   'han.svg',
   'setup.svg',
+  'simp-chinese.svg',
+  'trad-chinese.svg',
   'sunpinyin-logo.png',
   install_dir: package_datadir / 'icons')

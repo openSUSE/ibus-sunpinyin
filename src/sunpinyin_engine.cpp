@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009 Kov Chai <tchaikov@gmail.com>
+ * Copyright (c) 2026 Hillwood Yang <hillwood@opensuse.org>
  *
  * The contents of this file are subject to the terms of either the GNU Lesser
  * General Public License Version 2.1 only ("LGPL") or the Common Development and
@@ -54,6 +55,7 @@ SunPinyinEngine::SunPinyinEngine(IBusEngine *engine)
       m_status_prop(SunPinyinProperty::create_status_prop(engine)),
       m_letter_prop(SunPinyinProperty::create_letter_prop(engine)),
       m_punct_prop(SunPinyinProperty::create_punct_prop(engine)),
+      m_script_prop(SunPinyinProperty::create_script_prop(engine)),
       m_wh(NULL),
       m_pv(NULL),
       m_hotkey_profile(NULL),
@@ -91,6 +93,7 @@ SunPinyinEngine::SunPinyinEngine(IBusEngine *engine)
     ibus_prop_list_append(m_prop_list, m_status_prop);
     ibus_prop_list_append(m_prop_list, m_letter_prop);
     ibus_prop_list_append(m_prop_list, m_punct_prop);
+    ibus_prop_list_append(m_prop_list, m_script_prop);
     ibus_prop_list_append(m_prop_list, m_setup_prop);
 
     update_config();
@@ -159,6 +162,7 @@ void
 SunPinyinEngine::focus_in ()
 {
     update_candidate_orientation();
+    update_output_script();
     ibus_engine_register_properties(m_engine, m_prop_list);
     m_pv->updateWindows(CIMIView::PREEDIT_MASK | CIMIView::CANDIDATE_MASK);
 }
@@ -220,6 +224,12 @@ SunPinyinEngine::property_activate (const std::string& property, unsigned /*stat
     } else if (m_punct_prop.toggle(property)) {
         m_pv->setStatusAttrValue(CIMIWinHandler::STATUS_ID_FULLPUNC,
                                  m_punct_prop.state());
+    } else if (m_script_prop.toggle(property)) {
+        const bool traditional = m_script_prop.state();
+        m_config.set(CONFIG_GENERAL_TRADITIONAL, traditional);
+        // Apply locally as well: config notifications may arrive later.
+        m_conversion.set_enabled(traditional);
+        m_pv->updateWindows(CIMIView::PREEDIT_MASK | CIMIView::CANDIDATE_MASK);
     } else {
         // try to launch the setup UI
         m_setup_prop.launch(property);
@@ -255,6 +265,9 @@ SunPinyinEngine::onConfigChanged(const COptionEvent& event)
         update_history_power();
     } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_PAGE_SIZE) == 0) {
         update_cand_window_size();
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_TRADITIONAL) == 0) {
+        update_output_script();
+        m_pv->updateWindows(CIMIView::PREEDIT_MASK | CIMIView::CANDIDATE_MASK);
     } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_ORIENTATION) == 0) {
         update_candidate_orientation();
         m_pv->updateWindows(CIMIView::CANDIDATE_MASK);
@@ -291,6 +304,7 @@ SunPinyinEngine::update_config()
     update_history_power();
     update_cand_window_size();
     update_candidate_orientation();
+    update_output_script();
     update_max_best();
     update_max_tail_candidate();
     update_charset_level();
@@ -310,18 +324,27 @@ SunPinyinEngine::update_config()
 void
 SunPinyinEngine::commit_string (const std::wstring& str)
 {
-    IBusText *text;
-    text = ibus_text_new_from_ucs4((const gunichar*) str.c_str());
+    const std::string converted = m_conversion.convert(
+        reinterpret_cast<const gunichar*>(str.c_str()));
+    IBusText* text = ibus_text_new_from_string(converted.c_str());
     ibus_engine_commit_text(m_engine, text);
 }
 
 void
 SunPinyinEngine::update_candidates(const ICandidateList& cl)
 {
-    if (m_lookup_table.update_candidates(cl) > 0)
+    if (m_lookup_table.update_candidates(cl, m_conversion) > 0)
         update_lookup_table();
     else
         ibus_engine_hide_lookup_table (m_engine);
+}
+
+void
+SunPinyinEngine::update_output_script()
+{
+    const bool traditional = m_config.get(CONFIG_GENERAL_TRADITIONAL, false);
+    m_conversion.set_enabled(traditional);
+    m_script_prop.update(traditional);
 }
 
 void
@@ -370,7 +393,8 @@ SunPinyinEngine::update_preedit_string(const IPreeditString& preedit)
         int embed_pos = find_embed_preedit_pos(preedit);
         wstring embed_wstr = wstr.substr(0, embed_pos);
         wstring preedit_wstr = wstr.substr(embed_pos);
-        const gunichar* embed_cstr = (const gunichar*) embed_wstr.c_str();
+        const std::string embed_text = m_conversion.convert(
+            reinterpret_cast<const gunichar*>(embed_wstr.c_str()));
         const gunichar* preedit_cstr = (const gunichar*) preedit_wstr.c_str();
         IBusText* preedit_text = ibus_text_new_from_ucs4(preedit_cstr);
         int caret = preedit.caret() - embed_pos;
@@ -384,8 +408,8 @@ SunPinyinEngine::update_preedit_string(const IPreeditString& preedit)
         ibus_engine_update_auxiliary_text(m_engine, preedit_text, TRUE);
 
         ibus_engine_update_preedit_text(m_engine,
-                                        ibus_text_new_from_ucs4(embed_cstr),
-                                        preedit.caret(), TRUE);
+                                        ibus_text_new_from_string(embed_text.c_str()),
+                                        g_utf8_strlen(embed_text.c_str(), -1), TRUE);
 
     } else {
         ibus_engine_hide_auxiliary_text(m_engine);
