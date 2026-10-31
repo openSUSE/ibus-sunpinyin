@@ -215,13 +215,13 @@ msgid "copyright (c) 2009"
 msgstr "版权所有 (c) 2009"
 
 msgid "OK"
-msgstr "确定(O)"
+msgstr "确定(_O)"
 
 msgid "Cancel"
-msgstr "取消(C)"
+msgstr "取消(_C)"
 
 msgid "Apply"
-msgstr "应用(A)"
+msgstr "应用(_A)"
 
 msgid "Candidate Orientation"
 msgstr "候选词显示方向"
@@ -297,3 +297,12 @@ msgstr "简体"
 
 msgid "Traditional"
 msgstr "繁体"
+
+msgid "SunPinyin input method for IBus"
+msgstr "基于 IBus 的 SunPinyin 输入法"
+
+msgid "<b>Authors:</b>\nLeo Zheng\nKov Chai\nHillwood Yang"
+msgstr "<b>作者：</b>\nLeo Zheng\nKov Chai\nHillwood Yang"
+
+msgid "License: LGPL-2.1-only or CDDL-1.0"
+msgstr "许可证：LGPL-2.1-only 或 CDDL-1.0"

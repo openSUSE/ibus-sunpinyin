@@ -40,11 +40,14 @@ from os import path
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('IBus', '1.0')
+gi.require_version('GdkPixbuf', '2.0')
 from gi.repository import Gtk as gtk
 from gi.repository import GLib as glib
 from gi.repository import IBus as ibus
+from gi.repository import GdkPixbuf as gdkpixbuf
 import gettext
 import locale
+import config
 
 GETTEXT_PACKAGE="ibus-sunpinyin"
 _ = lambda msg: gettext.gettext(msg)
@@ -504,8 +507,16 @@ class MainWindow():
         self.__xml.add_objects_from_file(XML_FILE, [name])
         self.__xml.connect_signals(self)
         self.__init_options()
+        self.__init_about()
         self.window = self.__xml.get_object(name)
         self.window.show_all()
+
+    def __init_about(self):
+        logo = gdkpixbuf.Pixbuf.new_from_file_at_scale(
+            path.join(config.icon_dir, "sunpinyin-logo.png"), 48, 48, False)
+        self.__xml.get_object("about_icon").set_from_pixbuf(logo)
+        self.__xml.get_object("about_name_version").set_markup(
+            "<big><b>ibus-sunpiyin %s</b></big>" % glib.markup_escape_text(config.version))
 
     def __init_gettext(self):
         locale.setlocale(locale.LC_ALL, "")

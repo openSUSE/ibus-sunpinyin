@@ -1,3 +1,5 @@
 prefix = "@INSTALL_PREFIX@"
 datadir = "@DATADIR@"
 localedir = "@LOCALEDIR@"
+version = "@VERSION@"
+icon_dir = "@ICON_DIR@"

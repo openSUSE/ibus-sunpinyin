@@ -2923,6 +2923,95 @@
                 <property name="tab-fill">False</property>
               </packing>
             </child>
+            <child>
+              <object class="GtkBox" id="about_page">
+                <property name="visible">True</property>
+                <property name="orientation">vertical</property>
+                <property name="border-width">24</property>
+                <property name="spacing">12</property>
+                <property name="valign">center</property>
+                <child>
+                  <object class="GtkImage" id="about_icon">
+                    <property name="visible">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="about_name_version">
+                    <property name="visible">True</property>
+                    <property name="label"></property>
+                    <property name="use-markup">False</property>
+                    <property name="selectable">True</property>
+                    <property name="wrap">True</property>
+                    <property name="justify">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="about_description">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">SunPinyin input method for IBus</property>
+                    <property name="use-markup">False</property>
+                    <property name="selectable">True</property>
+                    <property name="wrap">True</property>
+                    <property name="justify">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="about_copyright">
+                    <property name="visible">True</property>
+                    <property name="label">Copyright © 2009 Leo Zheng, Kov Chai
+Copyright © 2026 Hillwood Yang</property>
+                    <property name="use-markup">False</property>
+                    <property name="selectable">True</property>
+                    <property name="wrap">True</property>
+                    <property name="justify">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLinkButton" id="about_website">
+                    <property name="visible">True</property>
+                    <property name="label">https://github.com/openSUSE/ibus-sunpinyin</property>
+                    <property name="uri">https://github.com/openSUSE/ibus-sunpinyin</property>
+                    <property name="halign">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="about_authors">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Authors:&lt;/b&gt;
+Leo Zheng
+Kov Chai
+Hillwood Yang</property>
+                    <property name="use-markup">True</property>
+                    <property name="selectable">True</property>
+                    <property name="wrap">True</property>
+                    <property name="justify">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="about_license">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">License: LGPL-2.1-only or CDDL-1.0</property>
+                    <property name="use-markup">False</property>
+                    <property name="selectable">True</property>
+                    <property name="wrap">True</property>
+                    <property name="justify">center</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="about_tab">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">About</property>
+              </object>
+              <packing>
+                <property name="position">3</property>
+                <property name="tab-fill">False</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">True</property>
