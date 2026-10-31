@@ -9,4 +9,6 @@ configure_file(
   configuration: configuration,
   install_dir: package_libexecdir,
   install_mode: 'rwxr-xr-x')
-install_data('main.py', 'setup.ui', install_dir: package_datadir / 'setup')
+install_data('main.py', 'setup.ui',
+  install_dir: package_datadir / 'setup',
+  install_mode: 'rw-r--r--')
