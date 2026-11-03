@@ -980,7 +980,7 @@ SunPinyinEngine::render_cloud_candidates()
     for (size_t i = 0; i <= m_local_candidates.size(); ++i) {
         if (m_cloud_visible && (i == 1 || (i == 0 && m_local_candidates.empty()))) {
             for (const auto& result : converted) {
-                IBusText* text = ibus_text_new_from_string((result + " ☁").c_str());
+                IBusText* text = ibus_text_new_from_string(("☁ " + result).c_str());
                 ibus_lookup_table_append_candidate(m_lookup_table, text);
             }
         }
