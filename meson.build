@@ -1,5 +1,5 @@
 project('ibus-sunpinyin', 'cpp',
-  version: '2.0.3',
+  version: '2.42.0',
   meson_version: '>=0.59.0',
   license: ['LGPL-2.1-only', 'CDDL-1.0'],
   default_options: ['cpp_std=c++17', 'warning_level=1'])
