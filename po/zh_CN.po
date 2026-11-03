@@ -327,3 +327,7 @@ msgstr "云结果数量："
 
 msgid "Request delay (ms):"
 msgstr "请求延迟（毫秒）："
+
+#: setup/setup.ui
+msgid "Smart Punctuation"
+msgstr "智能标点"
