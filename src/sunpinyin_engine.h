@@ -116,6 +116,7 @@ private:
     void update_correction_pinyins();
     void update_fuzzy_segs();
     void update_shuangpin_type();
+    void update_pinyin_scheme();
 
     void update_lookup_table();
     void update_cloud_config();
@@ -142,6 +143,7 @@ private:
     SunPinyinCloud m_cloud;
     bool m_cloud_enabled = false;
     bool m_full_pinyin = true;
+    int m_shuangpin_type = -1;
     int m_cloud_page_size = 10;
     bool m_cloud_visible = false;
     int m_cloud_source = 0;

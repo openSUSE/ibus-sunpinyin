@@ -320,7 +320,10 @@ SunPinyinEngine::cursor_down ()
 bool
 SunPinyinEngine::onConfigChanged(const COptionEvent& event)
 {
-    if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_CLOUD_ENABLED) == 0 ||
+    if (g_ascii_strcasecmp(event.name.c_str(), PINYIN_SCHEME) == 0 ||
+        g_ascii_strcasecmp(event.name.c_str(), SHUANGPIN_TYPE) == 0) {
+        update_pinyin_scheme();
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_CLOUD_ENABLED) == 0 ||
         g_ascii_strcasecmp(event.name.c_str(), CONFIG_CLOUD_SOURCE) == 0 ||
         g_ascii_strcasecmp(event.name.c_str(), CONFIG_CLOUD_CANDIDATES) == 0 ||
         g_ascii_strcasecmp(event.name.c_str(), CONFIG_CLOUD_DELAY) == 0) {
@@ -775,8 +778,62 @@ void
 SunPinyinEngine::update_shuangpin_type()
 {
     EShuangpinType shuangpin_type = MS2003;
-    shuangpin_type = (EShuangpinType) m_config.get(SHUANGPIN_TYPE, (int) shuangpin_type);
+    shuangpin_type = static_cast<EShuangpinType>(std::clamp(
+        m_config.get(SHUANGPIN_TYPE, static_cast<int>(shuangpin_type)), 0, static_cast<int>(XIAOHE)));
+    m_shuangpin_type = shuangpin_type;
     AShuangpinSchemePolicy::instance().setShuangpinType(shuangpin_type);
+}
+
+void
+SunPinyinEngine::update_pinyin_scheme()
+{
+    const auto scheme = m_config.get_py_scheme(CSunpinyinSessionFactory::QUANPIN);
+    const bool full_pinyin = scheme == CSunpinyinSessionFactory::QUANPIN;
+    const int type = std::clamp(m_config.get(SHUANGPIN_TYPE, static_cast<int>(MS2003)),
+                                0, static_cast<int>(XIAOHE));
+    if (full_pinyin == m_full_pinyin && (full_pinyin || type == m_shuangpin_type))
+        return;
+
+    const int previous_type = m_shuangpin_type;
+    const int cn = m_pv->getStatusAttrValue(CIMIWinHandler::STATUS_ID_CN);
+    const int letter = m_pv->getStatusAttrValue(CIMIWinHandler::STATUS_ID_FULLSYMBOL);
+    const int punct = m_pv->getStatusAttrValue(CIMIWinHandler::STATUS_ID_FULLPUNC);
+    reset();
+    m_wh->disableDeferedUpdate();
+
+    // A policy change only affects newly-created segmentors. Rebuild the
+    // session so the local decoder and cloud decoder both switch immediately.
+    auto& factory = CSunpinyinSessionFactory::getFactory();
+    factory.setPinyinScheme(scheme);
+    if (full_pinyin) {
+        update_fuzzy_pinyins();
+        update_correction_pinyins();
+        update_fuzzy_segs();
+    } else {
+        update_shuangpin_type();
+    }
+    CIMIView* replacement = factory.createSession();
+    const auto previous = m_full_pinyin ? CSunpinyinSessionFactory::QUANPIN
+                                       : CSunpinyinSessionFactory::SHUANGPIN;
+    factory.setPinyinScheme(previous);
+    if (!replacement) {
+        m_shuangpin_type = previous_type;
+        if (previous_type >= 0)
+            AShuangpinSchemePolicy::instance().setShuangpinType(static_cast<EShuangpinType>(previous_type));
+        g_warning("Cannot switch SunPinyin session to the requested pinyin scheme");
+        return;
+    }
+    factory.destroySession(m_pv);
+    factory.setPinyinScheme(scheme);
+    m_pv = replacement;
+    m_full_pinyin = full_pinyin;
+    m_pv->setHotkeyProfile(m_hotkey_profile);
+    m_pv->attachWinHandler(m_wh);
+    update_config();
+    m_pv->setStatusAttrValue(CIMIWinHandler::STATUS_ID_CN, cn);
+    m_pv->setStatusAttrValue(CIMIWinHandler::STATUS_ID_FULLSYMBOL, letter);
+    m_pv->setStatusAttrValue(CIMIWinHandler::STATUS_ID_FULLPUNC, punct);
+    m_pv->updateWindows(CIMIView::PREEDIT_MASK | CIMIView::CANDIDATE_MASK);
 }
 
 void
