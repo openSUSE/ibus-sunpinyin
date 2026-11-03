@@ -3155,6 +3155,7 @@ Hillwood Yang</property>
             <child>
               <object class="GtkButton" id="main_ok">
                 <property name="label" translatable="yes">OK</property>
+                <property name="use-underline">True</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -3170,6 +3171,7 @@ Hillwood Yang</property>
             <child>
               <object class="GtkButton" id="main_cancel">
                 <property name="label" translatable="yes">Cancel</property>
+                <property name="use-underline">True</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -3185,6 +3187,7 @@ Hillwood Yang</property>
             <child>
               <object class="GtkButton" id="main_apply">
                 <property name="label" translatable="yes">Apply</property>
+                <property name="use-underline">True</property>
                 <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
