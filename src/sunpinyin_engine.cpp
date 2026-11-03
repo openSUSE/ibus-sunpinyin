@@ -39,6 +39,7 @@
 #include <sstream>
 
 #include <sunpinyin.h>
+#include <pinyin/pinyin_data.h>
 
 #include "sunpinyin_property.h"
 #include "sunpinyin_lookup_table.h"
@@ -65,6 +66,7 @@ SunPinyinEngine::SunPinyinEngine(IBusEngine *engine)
 
     CSunpinyinSessionFactory::EPyScheme pinyin_scheme =
         m_config.get_py_scheme(CSunpinyinSessionFactory::QUANPIN);
+    m_full_pinyin = pinyin_scheme == CSunpinyinSessionFactory::QUANPIN;
     factory.setPinyinScheme(pinyin_scheme);
     if (pinyin_scheme == CSunpinyinSessionFactory::QUANPIN) {
         update_fuzzy_pinyins();
@@ -96,11 +98,18 @@ SunPinyinEngine::SunPinyinEngine(IBusEngine *engine)
     ibus_prop_list_append(m_prop_list, m_script_prop);
     ibus_prop_list_append(m_prop_list, m_setup_prop);
 
+    g_signal_connect(m_engine, "set-content-type", G_CALLBACK(+[](
+        IBusEngine*, guint, guint, gpointer data) {
+            auto* self = static_cast<SunPinyinEngine*>(data);
+            if (self->m_cloud_enabled) self->reset();
+        }), this);
     update_config();
 }
 
 SunPinyinEngine::~SunPinyinEngine()
 {
+    m_cloud.cancel();
+    g_signal_handlers_disconnect_by_data(m_engine, this);
     if (m_pv) {
         CSunpinyinSessionFactory& factory =
             CSunpinyinSessionFactory::getFactory();
@@ -136,6 +145,7 @@ SunPinyinEngine::process_key_event (guint key_val,
         // Ctrl+<space> is pressed. let's just hard code these.
         // it looks ridiculous, but on what else do you need to do this hack?
         if (key.code == 0x20 && key.modifiers == IM_CTRL_MASK) {
+            if (m_cloud_enabled) reset();
             m_hard_forward = !m_hard_forward;
             return TRUE;
         } else if (m_hard_forward) {
@@ -155,6 +165,39 @@ SunPinyinEngine::process_key_event (guint key_val,
         return TRUE;
     }
 
+    if (m_cloud_enabled && !(modifiers & (IBUS_RELEASE_MASK | IBUS_CONTROL_MASK |
+                                         IBUS_MOD1_MASK | IBUS_SUPER_MASK)) &&
+        !m_local_candidates.empty()) {
+        if (key_val == IBUS_KEY_Down) { cursor_down(); return TRUE; }
+        if (key_val == IBUS_KEY_Up) { cursor_up(); return TRUE; }
+    }
+    if (m_cloud_enabled && (!m_local_candidates.empty() || m_cloud_visible) &&
+        !(modifiers & IBUS_RELEASE_MASK) &&
+        !(modifiers & (IBUS_CONTROL_MASK | IBUS_MOD1_MASK | IBUS_SUPER_MASK))) {
+        if (key_val >= IBUS_KEY_1 && key_val <= IBUS_KEY_9) {
+            guint index = key_val - IBUS_KEY_1;
+            if (index < m_local_candidates.size() + m_visible_cloud.size())
+                candidate_clicked(index);
+            return TRUE;
+        }
+        if (key_val == IBUS_KEY_0) {
+            if (m_local_candidates.size() + m_visible_cloud.size() >= 10)
+                candidate_clicked(9);
+            return TRUE;
+        }
+        if (key_val == IBUS_KEY_space) {
+            candidate_clicked(ibus_lookup_table_get_cursor_in_page(m_lookup_table));
+            return TRUE;
+        }
+    }
+    // Map Alt+number deletion back to the underlying local candidate indices.
+    if (m_cloud_visible && (modifiers & IBUS_MOD1_MASK) &&
+        !(modifiers & IBUS_RELEASE_MASK) && key_val >= IBUS_KEY_0 && key_val <= IBUS_KEY_9) {
+        guint index = key_val == IBUS_KEY_0 ? 9 : key_val - IBUS_KEY_1;
+        if (index >= 1 && index <= m_visible_cloud.size()) return TRUE;
+        if (index > m_visible_cloud.size()) index -= m_visible_cloud.size();
+        key = translate_key(IBUS_KEY_1 + index, key_code, modifiers);
+    }
     return m_pv->onKeyEvent(key);
 }
 
@@ -176,6 +219,7 @@ SunPinyinEngine::focus_out ()
 void
 SunPinyinEngine::reset ()
 {
+    clear_cloud();
     m_pv->updateWindows(m_pv->clearIC());
 }
 
@@ -198,6 +242,7 @@ SunPinyinEngine::enable ()
 void
 SunPinyinEngine::disable ()
 {
+    if (m_cloud_enabled) reset();
 }
 
 void
@@ -239,12 +284,21 @@ SunPinyinEngine::property_activate (const std::string& property, unsigned /*stat
 void
 SunPinyinEngine::candidate_clicked (guint index)
 {
+    if (m_cloud_enabled) {
+        if (select_cloud_candidate(index)) return;
+        if (m_cloud_visible && index > m_visible_cloud.size()) index -= m_visible_cloud.size();
+        if (index >= m_local_candidates.size()) return;
+    }
     m_pv->onCandidateSelectRequest(index);
 }
 
 void
 SunPinyinEngine::cursor_up ()
 {
+    if (m_cloud_enabled && ibus_lookup_table_get_cursor_in_page(m_lookup_table) == 0) {
+        page_up();
+        return;
+    }
     if (m_lookup_table.cursor_up()) {
         update_lookup_table();
     }
@@ -253,6 +307,11 @@ SunPinyinEngine::cursor_up ()
 void
 SunPinyinEngine::cursor_down ()
 {
+    if (m_cloud_enabled && ibus_lookup_table_get_cursor_in_page(m_lookup_table) + 1 >=
+            m_local_candidates.size() + m_visible_cloud.size()) {
+        page_down();
+        return;
+    }
     if (m_lookup_table.cursor_down()) {
         update_lookup_table();
     }
@@ -261,7 +320,13 @@ SunPinyinEngine::cursor_down ()
 bool
 SunPinyinEngine::onConfigChanged(const COptionEvent& event)
 {
-    if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_MEMORY_POWER) == 0) {
+    if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_CLOUD_ENABLED) == 0 ||
+        g_ascii_strcasecmp(event.name.c_str(), CONFIG_CLOUD_SOURCE) == 0 ||
+        g_ascii_strcasecmp(event.name.c_str(), CONFIG_CLOUD_CANDIDATES) == 0 ||
+        g_ascii_strcasecmp(event.name.c_str(), CONFIG_CLOUD_DELAY) == 0) {
+        update_cloud_config();
+        m_pv->updateWindows(CIMIView::PREEDIT_MASK | CIMIView::CANDIDATE_MASK);
+    } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_MEMORY_POWER) == 0) {
         update_history_power();
     } else if (g_ascii_strcasecmp(event.name.c_str(), CONFIG_GENERAL_PAGE_SIZE) == 0) {
         update_cand_window_size();
@@ -301,6 +366,7 @@ SunPinyinEngine::onConfigChanged(const COptionEvent& event)
 void
 SunPinyinEngine::update_config()
 {
+    update_cloud_config();
     update_history_power();
     update_cand_window_size();
     update_candidate_orientation();
@@ -324,6 +390,7 @@ SunPinyinEngine::update_config()
 void
 SunPinyinEngine::commit_string (const std::wstring& str)
 {
+    clear_cloud();
     const std::string converted = m_conversion.convert(
         reinterpret_cast<const gunichar*>(str.c_str()));
     IBusText* text = ibus_text_new_from_string(converted.c_str());
@@ -333,6 +400,21 @@ SunPinyinEngine::commit_string (const std::wstring& str)
 void
 SunPinyinEngine::update_candidates(const ICandidateList& cl)
 {
+    if (m_cloud_enabled) {
+        m_local_candidates.clear();
+        m_local_types.clear();
+        m_local_first = cl.first();
+        m_local_total = cl.total();
+        for (int i = 0; i < cl.size(); ++i) {
+            const TWCHAR* text = cl.candiString(i);
+            if (!text || !cl.candiSize(i)) break;
+            m_local_candidates.push_back(m_conversion.convert(
+                reinterpret_cast<const gunichar*>(text)));
+            m_local_types.push_back(cl.candiType(i));
+        }
+        render_cloud_candidates();
+        return;
+    }
     if (m_lookup_table.update_candidates(cl, m_conversion) > 0)
         update_lookup_table();
     else
@@ -388,6 +470,7 @@ enum {ORANGE = 0xE76F00, GRAY_BLUE = 0x35556B, WHITE = 0xFFFFFF,
 void
 SunPinyinEngine::update_preedit_string(const IPreeditString& preedit)
 {
+    request_cloud(preedit);
     if (preedit.size() > 0) {
         wstring wstr(preedit.string());
         int embed_pos = find_embed_preedit_pos(preedit);
@@ -465,8 +548,12 @@ SunPinyinEngine::update_charset_level()
 void
 SunPinyinEngine::update_cand_window_size()
 {
-    unsigned size = m_config.get(CONFIG_GENERAL_PAGE_SIZE, 10);
+    int size = m_config.get(CONFIG_GENERAL_PAGE_SIZE, 10);
+    m_cloud_page_size = std::clamp(size, m_cloud_count + 1, 10);
+    if (m_cloud_enabled) size = m_cloud_page_size - m_cloud_count;
     m_pv->setCandiWindowSize(size);
+    // A new cloud count changes the local page capacity; restart at a page boundary.
+    if (m_cloud_enabled) m_pv->onCandidatePageRequest(0, false);
 }
 
 void
@@ -697,6 +784,183 @@ SunPinyinEngine::update_candi_delete_key()
 {
     /* FIXME: need to get candi_delete_key from user's configuration */
     m_hotkey_profile->setCandiDeleteKey(CKeyEvent(0, 0, IM_ALT_MASK));
+}
+
+bool
+SunPinyinEngine::cloud_allowed()
+{
+    guint purpose = 0, hints = 0;
+    ibus_engine_get_content_type(m_engine, &purpose, &hints);
+    guint private_hints = IBUS_INPUT_HINT_PRIVATE;
+#if IBUS_CHECK_VERSION(1, 5, 34)
+    private_hints |= IBUS_INPUT_HINT_HIDDEN_TEXT;
+#endif
+    return m_cloud_enabled && !m_hard_forward &&
+        m_pv->getStatusAttrValue(CIBusWinHandler::STATUS_ID_CN) &&
+        purpose != IBUS_INPUT_PURPOSE_PASSWORD && purpose != IBUS_INPUT_PURPOSE_PIN &&
+        !(hints & private_hints);
+}
+
+void
+SunPinyinEngine::clear_cloud()
+{
+    m_cloud.cancel();
+    m_cloud_query.clear();
+    m_cloud_results.clear();
+    m_visible_cloud.clear();
+    m_cloud_visible = false;
+}
+
+void
+SunPinyinEngine::update_cloud_config()
+{
+    clear_cloud();
+    m_cloud_enabled = m_config.get(CONFIG_CLOUD_ENABLED, false);
+    m_cloud_source = m_config.get(CONFIG_CLOUD_SOURCE, 0) == 1 ? 1 : 0;
+    m_cloud_count = std::clamp(m_config.get(CONFIG_CLOUD_CANDIDATES, 1), 1, 9);
+    m_cloud_delay = std::clamp(m_config.get(CONFIG_CLOUD_DELAY, 600), 0, 3000);
+    m_local_candidates.clear();
+    m_local_types.clear();
+    update_cand_window_size();
+}
+
+std::string
+SunPinyinEngine::cloud_pinyin(const IPreeditString& preedit) const
+{
+    if (preedit.size() <= 0) return {};
+    std::string query;
+    // A selected Chinese prefix must not be lost when committing a cloud result.
+    for (int i = 0; i < preedit.size(); ++i) {
+        const auto c = preedit.string()[i];
+        if (c >= 'a' && c <= 'z') {
+            if (m_full_pinyin) query += static_cast<char>(c);
+        } else if (c == '\'' || c == ' ') {
+            if (m_full_pinyin) query += '\'';
+        } else if (c != ';' || m_full_pinyin) {
+            return {};
+        }
+    }
+    if (m_full_pinyin) return query;
+
+    IPySegmentor* segmentor = m_pv->getPySegmentor();
+    if (!segmentor) return {};
+    const auto& input = segmentor->getInputBuffer();
+    unsigned covered = 0;
+    // Decode the active segmentor's syllables, so every supported double-pinyin
+    // layout (including semicolon keys and zero initials) uses its own mapping.
+    for (const auto& segment : segmentor->getSegments(false)) {
+        if (segment.m_start != covered || segment.m_len == 0 ||
+            covered + segment.m_len > input.size()) return {};
+        covered += segment.m_len;
+        if (segment.m_type == IPySegmentor::SYLLABLE_SEP) continue;
+        // Wait for the second key; do not send raw or incomplete double pinyin.
+        if (segment.m_type != IPySegmentor::SYLLABLE || segment.m_len != 2 ||
+            segment.m_syllables.empty()) return {};
+        const TSyllable syllable(segment.m_syllables.front());
+        if (!syllable.isFullSyllable()) return {};
+        const char* spelling = CPinyinData::decodeSyllable(syllable);
+        if (!spelling || !*spelling) return {};
+        if (!query.empty()) query += '\'';
+        query += spelling;
+    }
+    if (covered != input.size()) return {};
+    return query;
+}
+
+void
+SunPinyinEngine::request_cloud(const IPreeditString& preedit)
+{
+    const std::string query = cloud_allowed() ? cloud_pinyin(preedit) : std::string();
+    if (query == m_cloud_query) return;
+    clear_cloud();
+    // Remove the stale cloud entry even for empty or too-short input.
+    render_cloud_candidates();
+    if (query.size() < 2 || query.size() > 128) return;
+    m_cloud_query = query;
+    m_cloud.query(query, m_cloud_source, m_cloud_count, m_cloud_delay, [this, query](const SunPinyinCloud::Results& results) {
+        if (!cloud_allowed() || query != m_cloud_query || results.empty()) return;
+        const guint cursor = ibus_lookup_table_get_cursor_in_page(m_lookup_table);
+        m_cloud_results = results;
+        render_cloud_candidates();
+        if (m_cloud_visible && cursor > 0) {
+            const guint start = ibus_lookup_table_get_cursor_pos(m_lookup_table);
+            ibus_lookup_table_set_cursor_pos(m_lookup_table, start + cursor + m_visible_cloud.size());
+            update_lookup_table();
+        }
+    });
+}
+
+void
+SunPinyinEngine::render_cloud_candidates()
+{
+    if (!m_cloud_enabled) return;
+    ibus_lookup_table_clear(m_lookup_table);
+    m_visible_cloud.clear();
+    std::vector<std::string> converted;
+    if (cloud_allowed()) {
+        for (const auto& result : m_cloud_results) {
+            if (converted.size() >= static_cast<size_t>(m_cloud_count)) break;
+            gunichar* ucs4 = g_utf8_to_ucs4(result.c_str(), -1, nullptr, nullptr, nullptr);
+            if (!ucs4) continue;
+            std::string text = m_conversion.convert(ucs4);
+            g_free(ucs4);
+            if (text.empty() ||
+                std::find(m_local_candidates.begin(), m_local_candidates.end(), text) != m_local_candidates.end() ||
+                std::find(converted.begin(), converted.end(), text) != converted.end()) continue;
+            converted.push_back(text);
+            m_visible_cloud.push_back(result);
+        }
+    }
+    m_cloud_visible = !converted.empty();
+    const int capacity = m_cloud_page_size - m_cloud_count;
+    const int page_size = capacity + converted.size();
+    const int page_start = (m_local_first / capacity) * page_size;
+    const int pages = (m_local_total + capacity - 1) / capacity;
+    const int total = m_local_total + std::max(1, pages) * converted.size();
+    ibus_lookup_table_set_page_size(m_lookup_table, page_size);
+    for (int i = 0; i < page_start; ++i)
+        ibus_lookup_table_append_candidate(m_lookup_table, ibus_text_new_from_static_string(""));
+    for (size_t i = 0; i <= m_local_candidates.size(); ++i) {
+        if (m_cloud_visible && (i == 1 || (i == 0 && m_local_candidates.empty()))) {
+            for (const auto& result : converted) {
+                IBusText* text = ibus_text_new_from_string((result + " ☁").c_str());
+                ibus_lookup_table_append_candidate(m_lookup_table, text);
+            }
+        }
+        if (i < m_local_candidates.size()) {
+            IBusText* text = ibus_text_new_from_string(m_local_candidates[i].c_str());
+            if (m_local_types[i] == ICandidateList::BEST_WORD)
+                ibus_text_append_attribute(text, IBUS_ATTR_TYPE_UNDERLINE,
+                                          IBUS_ATTR_UNDERLINE_SINGLE, 0, -1);
+            ibus_lookup_table_append_candidate(m_lookup_table, text);
+        }
+    }
+    for (int i = ibus_lookup_table_get_number_of_candidates(m_lookup_table); i < total; ++i)
+        ibus_lookup_table_append_candidate(m_lookup_table, ibus_text_new_from_static_string(""));
+    if (m_local_candidates.empty() && !m_cloud_visible)
+        ibus_engine_hide_lookup_table(m_engine);
+    else {
+        ibus_lookup_table_set_cursor_pos(m_lookup_table, page_start);
+        update_lookup_table();
+    }
+}
+
+bool
+SunPinyinEngine::select_cloud_candidate(guint index)
+{
+    const guint cloud_index = m_local_candidates.empty() ? 0 : 1;
+    if (!m_cloud_visible || index < cloud_index ||
+        index >= cloud_index + m_visible_cloud.size()) return false;
+    if (!cloud_allowed()) { reset(); return true; }
+    glong length = 0;
+    gunichar* ucs4 = g_utf8_to_ucs4(m_visible_cloud[index - cloud_index].c_str(), -1, nullptr, &length, nullptr);
+    if (!ucs4) return true;
+    std::wstring text;
+    for (glong i = 0; i < length; ++i) text += static_cast<wchar_t>(ucs4[i]);
+    g_free(ucs4);
+    commit_string(text);
+    reset();
+    return true;
 }
 
 // -*- indent-tabs-mode: nil -*- vim:et:ts=4

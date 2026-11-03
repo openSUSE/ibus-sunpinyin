@@ -42,6 +42,7 @@
 #include <ime-core/imi_option_event.h>
 #include "sunpinyin_config.h"
 #include "sunpinyin_conversion.h"
+#include "sunpinyin_cloud.h"
 #include "sunpinyin_property.h"
 #include "sunpinyin_lookup_table.h"
 
@@ -117,6 +118,14 @@ private:
     void update_shuangpin_type();
 
     void update_lookup_table();
+    void update_cloud_config();
+    void clear_cloud();
+    std::string cloud_pinyin(const IPreeditString& preedit) const;
+    void request_cloud(const IPreeditString& preedit);
+    void render_cloud_candidates();
+    bool cloud_allowed();
+    bool select_cloud_candidate(guint index);
+
 
 private:
     ibus::Engine           m_engine;
@@ -130,6 +139,22 @@ private:
 
     SunPinyinLookupTable m_lookup_table;
     SunPinyinConversion m_conversion;
+    SunPinyinCloud m_cloud;
+    bool m_cloud_enabled = false;
+    bool m_full_pinyin = true;
+    int m_cloud_page_size = 10;
+    bool m_cloud_visible = false;
+    int m_cloud_source = 0;
+    std::string m_cloud_query;
+    int m_cloud_count = 1;
+    int m_cloud_delay = 600;
+    SunPinyinCloud::Results m_cloud_results;
+    SunPinyinCloud::Results m_visible_cloud;
+    std::vector<std::string> m_local_candidates;
+    std::vector<int> m_local_types;
+    int m_local_first = 0;
+    int m_local_total = 0;
+
 
     CIBusWinHandler *m_wh;
     CIMIView        *m_pv;

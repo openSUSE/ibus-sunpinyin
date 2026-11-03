@@ -306,3 +306,24 @@ msgstr "<b>作者：</b>\nLeo Zheng\nKov Chai\nHillwood Yang"
 
 msgid "License: LGPL-2.1-only or CDDL-1.0"
 msgstr "许可证：LGPL-2.1-only 或 CDDL-1.0"
+
+msgid "<b>Cloud Pinyin</b>"
+msgstr "<b>云拼音</b>"
+
+msgid "Enable cloud pinyin"
+msgstr "启用云拼音"
+
+msgid "Cloud service:"
+msgstr "云服务："
+
+msgid "When enabled, pinyin is sent to the selected service. Cloud candidates are marked with ☁."
+msgstr "启用后，拼音将发送至所选云服务。云候选词以 ☁ 标记。"
+
+msgid "Cloud Pinyin"
+msgstr "云拼音"
+
+msgid "Cloud results:"
+msgstr "云结果数量："
+
+msgid "Request delay (ms):"
+msgstr "请求延迟（毫秒）："

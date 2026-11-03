@@ -143,6 +143,12 @@ class TrivalOption(Option):
         except:
             self.widget.set_active(v)
 
+class IntegerOption(TrivalOption):
+    def save_ui_setting(self):
+        self.v = self.widget.get_value_as_int()
+        return self.v
+
+
 class CheckBoxOption(TrivalOption):
     def __init__(self, name, default, owner):
         super(CheckBoxOption, self).__init__(name, default, owner)
@@ -474,6 +480,7 @@ class MainWindow():
     SPECIAL_OBJECTS = [
         'pymodel', 'memory_adjustment', 'candidate_adjustment',
         'max_best_adjustment', 'max_tail_candidate_adjustment',
+        'cloud_count_adjustment', 'cloud_delay_adjustment',
         ]
 
     def __init__ (self):
@@ -533,6 +540,10 @@ class MainWindow():
         self.__punctmapping_setup = PunctMappingSetupDialog()
 
         self.__options = [
+            CheckBoxOption("Cloud/Enabled", False, self.__xml),
+            TrivalOption("Cloud/Source", 0, self.__xml),
+            IntegerOption("Cloud/Candidates", 1, self.__xml),
+            IntegerOption("Cloud/Delay", 600, self.__xml),
             TrivalOption("General/MemoryPower", 3, self.__xml),
             TrivalOption("General/PageSize", 10, self.__xml),
             TrivalOption("General/Orientation", 2, self.__xml),
@@ -594,6 +605,7 @@ class MainWindow():
         self.on_chk_correction_enabled_toggled(None)
         self.on_chk_punctmapping_enabled_toggled(None)
         self.on_radio_shuangpin_toggled(None)
+        self.on_cloud_enabled_toggled(None)
 
     def __write_config(self):
         for opt in self.__options:
@@ -608,6 +620,11 @@ class MainWindow():
         assert button is not None, "button: %s not found" % button_name
         button_enabled = checkbox.get_active()
         button.set_sensitive(button_enabled)
+
+    def on_cloud_enabled_toggled(self, button):
+        enabled = self.__xml.get_object("Cloud/Enabled").get_active()
+        for name in ("Cloud/Source", "Cloud/Candidates", "Cloud/Delay"):
+            self.__xml.get_object(name).set_sensitive(enabled)
 
     def on_radio_shuangpin_toggled(self, button):
         radio = self.__xml.get_object("Pinyin/Scheme/ShuangPin")

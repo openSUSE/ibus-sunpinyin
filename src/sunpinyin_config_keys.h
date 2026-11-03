@@ -37,6 +37,11 @@
 #ifndef SUNPINYIN_CONFIG_KEYS_H
 #define SUNPINYIN_CONFIG_KEYS_H
 
+#define CONFIG_CLOUD_ENABLED                "Cloud/Enabled"
+#define CONFIG_CLOUD_CANDIDATES             "Cloud/Candidates"
+#define CONFIG_CLOUD_DELAY                  "Cloud/Delay"
+#define CONFIG_CLOUD_SOURCE                 "Cloud/Source"
+
 #define CONFIG_GENERAL_PAGE_SIZE            "General/PageSize"
 #define CONFIG_GENERAL_MEMORY_POWER         "General/MemoryPower"
 #define CONFIG_GENERAL_CHARSET_LEVEL        "General/Charset"

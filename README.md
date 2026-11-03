@@ -8,9 +8,10 @@ Building and installing
 -----------------------
 
 Build requirements: Meson >= 0.59, Ninja, a C++17 compiler, pkg-config,
-GNU gettext (msgfmt, xgettext and msgmerge), Python 3, IBus >= 1.2 development
+GNU gettext (msgfmt, xgettext and msgmerge), Python 3, IBus >= 1.5.26 development
 files (ibus-1.0), SunPinyin >= 2.0 development files (sunpinyin-2.0),
-and OpenCC >= 1.0 development files (opencc).
+OpenCC >= 1.0 (opencc), libsoup >= 3.0 (libsoup-3.0),
+and JSON-GLib (json-glib-1.0) development files.
 The preferences tool also requires Python GObject introspection bindings,
 GTK 3 and IBus introspection data at runtime.
 

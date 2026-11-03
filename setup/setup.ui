@@ -2,6 +2,20 @@
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
+  <object class="GtkAdjustment" id="cloud_count_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">9</property>
+    <property name="value">1</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">1</property>
+  </object>
+  <object class="GtkAdjustment" id="cloud_delay_adjustment">
+    <property name="lower">0</property>
+    <property name="upper">3000</property>
+    <property name="value">600</property>
+    <property name="step-increment">50</property>
+    <property name="page-increment">50</property>
+  </object>
   <object class="GtkAdjustment" id="candidate_adjustment">
     <property name="lower">1</property>
     <property name="upper">11</property>
@@ -2924,6 +2938,117 @@
               </packing>
             </child>
             <child>
+              <object class="GtkFrame" id="cloud_page">
+                <property name="visible">True</property>
+                <property name="border-width">5</property>
+                <property name="shadow-type">none</property>
+                <child type="label">
+                  <object class="GtkLabel" id="cloud_title">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Cloud Pinyin&lt;/b&gt;</property>
+                    <property name="use-markup">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox" id="cloud_options">
+                    <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
+                    <property name="border-width">10</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkCheckButton" id="Cloud/Enabled">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Enable cloud pinyin</property>
+                        <signal name="toggled" handler="on_cloud_enabled_toggled" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="cloud_source_row">
+                        <property name="visible">True</property>
+                        <property name="spacing">12</property>
+                        <child>
+                          <object class="GtkLabel" id="cloud_source_label">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Cloud service:</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkComboBoxText" id="Cloud/Source">
+                            <property name="visible">True</property>
+                            <items>
+                              <item>Google</item>
+                              <item>Google CN</item>
+                            </items>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="cloud_candidates_row">
+                        <property name="visible">True</property>
+                        <property name="spacing">12</property>
+                        <child>
+                          <object class="GtkLabel" id="cloud_candidates_label">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Cloud results:</property>
+                            <property name="xalign">0</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="Cloud/Candidates">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="adjustment">cloud_count_adjustment</property>
+                            <property name="numeric">True</property>
+                            <property name="digits">0</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="cloud_delay_row">
+                        <property name="visible">True</property>
+                        <property name="spacing">12</property>
+                        <child>
+                          <object class="GtkLabel" id="cloud_delay_label">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Request delay (ms):</property>
+                            <property name="xalign">0</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="Cloud/Delay">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="adjustment">cloud_delay_adjustment</property>
+                            <property name="numeric">True</property>
+                            <property name="digits">0</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="cloud_notice">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">When enabled, pinyin is sent to the selected service. Cloud candidates are marked with ☁.</property>
+                        <property name="wrap">True</property>
+                        <property name="xalign">0</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="cloud_tab">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Cloud Pinyin</property>
+              </object>
+              <packing>
+                <property name="tab-fill">False</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkBox" id="about_page">
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>
@@ -2999,7 +3124,7 @@ Hillwood Yang</property>
                 </child>
               </object>
               <packing>
-                <property name="position">3</property>
+                <property name="position">4</property>
               </packing>
             </child>
             <child type="tab">
@@ -3008,7 +3133,7 @@ Hillwood Yang</property>
                 <property name="label" translatable="yes">About</property>
               </object>
               <packing>
-                <property name="position">3</property>
+                <property name="position">4</property>
                 <property name="tab-fill">False</property>
               </packing>
             </child>

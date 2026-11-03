@@ -4,9 +4,11 @@ project('ibus-sunpinyin', 'cpp',
   license: ['LGPL-2.1-only', 'CDDL-1.0'],
   default_options: ['cpp_std=c++17', 'warning_level=1'])
 
-ibus_dep = dependency('ibus-1.0', version: '>=1.2', method: 'pkg-config')
+ibus_dep = dependency('ibus-1.0', version: '>=1.5.26', method: 'pkg-config')
 sunpinyin_dep = dependency('sunpinyin-2.0', version: '>=2.0', method: 'pkg-config')
 opencc_dep = dependency('opencc', version: '>=1.0', method: 'pkg-config')
+soup_dep = dependency('libsoup-3.0', version: '>=3.0')
+json_dep = dependency('json-glib-1.0')
 intl_dep = dependency('intl')
 python = import('python').find_installation('python3')
 
